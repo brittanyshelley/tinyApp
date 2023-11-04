@@ -65,5 +65,3 @@ function generateRandomString(length) {
 
 const randomString = generateRandomString(6);
 console.log(randomString);
-
-
