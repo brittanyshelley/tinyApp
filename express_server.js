@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
+
+const { generateRandomString } = require("./function");
+
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -19,16 +22,28 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const id = req.params.id;
-  const longURL = urlDatabase[id]; // Retrieve the long URL from urlDatabase
+  //const id = req.params.id;
+  //const longURL = urlDatabase[id]; // Retrieve the long URL from urlDatabase
 
-  const templateVars = { id: id, longURL: longURL };
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id]['longURL'],
+  };
   res.render("urls_show", templateVars);
 
 });
+app.get("/u/:id", (req, res) => {
+    const longURL = urlDatabase[req.params.id]["longURL"];
+    res.redirect(longURL);
+});
+
 app.post("/urls", (req, res) => {
+  const id = generateRandomString();
+  const newLongURL = req.body.longURL;
+  urlDatabase[id] = { longURL: req.body.longURL };
+res.redirect(`/urls/${id}`);
+  console.log('TESTING')
   console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -53,17 +68,6 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-function generateRandomString(length) {
-  const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * charset.length);
-    result += charset.charAt(randomIndex);
-  }
-  return result;
-}
 
-const randomString = generateRandomString(6);
-console.log(randomString);
 
 
