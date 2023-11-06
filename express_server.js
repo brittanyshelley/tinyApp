@@ -22,29 +22,42 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  const longURL = urlDatabase[id]; // Retrieve the long URL from urlDatabase
   //const id = req.params.id;
   //const longURL = urlDatabase[id]; // Retrieve the long URL from urlDatabase
 
   const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id]['longURL'],
+    id: id,
+    longURL: longURL,
   };
   res.render("urls_show", templateVars);
 
 });
 app.get("/u/:id", (req, res) => {
-    const longURL = urlDatabase[req.params.id]["longURL"];
+    const longURL = urlDatabase[req.params.id][req.params.longURL];
     res.redirect(longURL);
 });
 
 app.post("/urls", (req, res) => {
-  const id = generateRandomString();
   const newLongURL = req.body.longURL;
-  urlDatabase[id] = { longURL: req.body.longURL };
+  const id = generateRandomString();
+  urlDatabase[id] = newLongURL;
+  // Redirect or respond with the new URL or any other appropriate action
+  res.redirect(`/urls/${id}`);
+
+  //const newlongURL = req.body;
+  //newlongURL.id = Math.random().toString(36).substring(2,8);
+  //urlDatabase.fetch(newlongURL);
+  //const id = generateRandomString();
+  //const newlongURL = req.body;
+  //urlDatabase[id] = { newlongURL: req.body.longURL };
 res.redirect(`/urls/${id}`);
   console.log('TESTING')
   console.log(req.body); // Log the POST request body to the console
+
 });
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
