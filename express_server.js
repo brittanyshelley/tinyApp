@@ -43,6 +43,12 @@ app.get("/urls/:id", (req, res) => {
 
 });
 
+app.post("/urls/:id/delete", (req, res) => {
+  const id = req.params.id;
+  delete urlDatabase[id];
+  res.redirect("/urls");
+});
+
 // Redirects to the longURL page
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
