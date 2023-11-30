@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
 
 
 const { generateRandomString } = require("./function");
@@ -19,6 +21,22 @@ app.use((req, res, next) => {
 });
 
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
+
+const users = {
+  uniqueId1: {
+    id: "uniqueId1",
+    username: "John Doe",
+    password: "password",
+    email: "  ",
+  },
+  uniqueId2: {
+    id: "uniqueId2",
+    username: "Jane Doe",
+    password: "password",
+    email: "  ",
+  }
+}
 
 // Routes
 app.get("/urls", (req, res) => {
@@ -39,10 +57,32 @@ app.get("/urls/:id", (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[id]; // Retrieve the long URL from urlDatabase
   const templateVars = { id: id, longURL: longURL };
+  console.log(templateVars);
   res.render("urls_show", templateVars);
-
 });
 
+//Edit's url from database when button pushed
+app.get('/urls/:id', (req, res) => {
+  const id = req.params.id;
+  const templateVars = {
+    placeToEdit: {
+      id: id,
+      longURL: urlDatabase[id].newLongURL
+    }
+  };
+  res.render('edit', templateVars);
+});
+
+//Update's url from database when button pushed
+app.post('/urls/:id', (req, res) => {
+  const id = req.params.id;
+  const newLongURL = req.body.newLongURL;
+  urlDatabase[id] = newLongURL
+  res.redirect('/urls');
+});
+
+
+//Delete's url from database when button pushed
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   delete urlDatabase[id];
