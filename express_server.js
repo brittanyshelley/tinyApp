@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const bcrypt = require('bcryptjs');
 
 
 const { generateRandomString } = require("./function");
@@ -13,16 +14,6 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-
-//Middleware
-app.use((req, res, next) => {
-  console.log(`ROUTE: ${req.method} ${req.url}`);
-  next();
-});
-
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan("dev"));
-
 const users = {
   uniqueId1: {
     id: "uniqueId1",
@@ -38,11 +29,55 @@ const users = {
   }
 }
 
+
+//Middleware
+app.use((req, res, next) => {
+  console.log(`ROUTE: ${req.method} ${req.url}`);
+  next();
+});
+
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
+app.use(cookieParser());
+// app.use(cookieSession({
+//   name: 'cookie',
+//   keys: ['fj39f7vkdn'],
+// }));
+
+//GET /login
+// app.get("/login", (req, res) => {
+//   const templateVars = { user: users[req.session.user_id] };
+//   res.render("login", templateVars);
+// });
+
+//POST /login
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
+  res.redirect('/urls');
+});
+
+// app.post("/login", (req, res) => {
+//   const email = req.body.email;
+//   const password = req.body.password;
+//   const user = findUserWithEmail(email);
+//   if (user && bcrypt.compareSync(password, user.password)) {
+//     req.session.user_id = user.id;
+//     res.redirect("/urls");
+//   } else {
+//     res.status(403).send("Invalid email or password");
+//   }
+// });
+// res.cookie('username', req.body.username);
+
 // Routes
+
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase,
+    username: req.cookies["username"], };
+    console.log("cookie:", req.cookies)
   res.render("urls_index", templateVars);
 });
+
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");

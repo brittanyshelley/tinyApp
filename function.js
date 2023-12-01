@@ -11,3 +11,15 @@ function generateRandomString() {
 module.exports = {
   generateRandomString
 }
+
+const findUserWithEmail = (email) => {
+  for (const userId in userId) {
+    if (users[user].email === email) {
+      //We found our user
+      return users[user];
+    }
+  }
+  return null;
+}
+
+module.exports = { findUserWithEmail };
