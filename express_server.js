@@ -44,11 +44,11 @@ app.use(cookieParser());
 //   keys: ['fj39f7vkdn'],
 // }));
 
-//GET /login
-// app.get("/login", (req, res) => {
-//   const templateVars = { user: users[req.session.user_id] };
-//   res.render("login", templateVars);
-// });
+// GET login
+app.get("/login", (req, res) => {
+  const templateVars = { user: users[req.session.user_id] };
+  res.render("login", templateVars);
+});
 
 //POST /login
 app.post("/login", (req, res) => {
@@ -61,6 +61,23 @@ app.post('/logout', (req, res) => {
   res.clearCookie('username');
   res.redirect('/urls');
 });
+
+app.get('/register', (req, res) => {
+  res.render('register');
+});
+
+// Handle the registration logic here
+app.post('/register', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  // Perform registration logic...
+
+  // Redirect or send a response as needed
+  res.send('Registration successful!');
+});
+
+
 // app.post("/login", (req, res) => {
 //   const email = req.body.email;
 //   const password = req.body.password;
