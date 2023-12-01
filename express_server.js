@@ -56,6 +56,11 @@ app.post("/login", (req, res) => {
   res.redirect('/urls');
 });
 
+//Logout, clear username cookie and redirect to /urls
+app.post('/logout', (req, res) => {
+  res.clearCookie('username');
+  res.redirect('/urls');
+});
 // app.post("/login", (req, res) => {
 //   const email = req.body.email;
 //   const password = req.body.password;

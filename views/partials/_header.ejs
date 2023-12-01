@@ -16,14 +16,20 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <span class="navbar-text">Logged in as: <%= username %></span>
       </div>
     </div>
     <td>
-      <form method="POST" action="/login">
-        <input id="username" type="text" name="username" placeholder="Username"/>
-        <button type="submit" class="btn btn-outline-light" name="login">Login</button>
-      </form>
+      <% if (typeof username !== "undefined" && username) { %>
+        <span class="navbar-text">Logged in as: <%= username %></span>
+        <form method="POST" action="/logout">
+          <button type="submit" class="btn btn-outline-light" name="logout">Logout</button>
+        </form>
+      <% } else { %>
+        <form method="POST" action="/login">
+          <input id="username" type="text" name="username" placeholder="Username"/>
+          <button type="submit" class="btn btn-outline-light" name="login">Login</button>
+        </form>
+      <% } %>
     </td>
   </nav>
 </header>
