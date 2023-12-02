@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser");
 const bcrypt = require('bcryptjs');
 
 
-const { generateRandomString } = require("./function");
+const { generateRandomString, findUserWithEmail } = require("./function");
 
 app.set("view engine", "ejs");
 
@@ -15,19 +15,17 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 const users = {
-  uniqueId1: {
-    id: "uniqueId1",
-    username: "John Doe",
-    password: "password",
-    email: "  ",
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
   },
-  uniqueId2: {
-    id: "uniqueId2",
-    username: "Jane Doe",
-    password: "password",
-    email: "  ",
-  }
-}
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
 
 
 //Middleware
@@ -63,18 +61,30 @@ app.post('/logout', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  res.render('register');
-});
+  const user_id = req.cookies['user_id'];
+  console.log('Cookie user_id:', user_id);
+  console.log('Users database:', users);
+  const user = users[user_id];
+  console.log('Found user:', user);
 
+  const templateVars = { user };
+  res.render('urls_register', templateVars);
+});
 // Handle the registration logic here
 app.post('/register', (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
+  const { email, password } = req.body;
+  const id = generateRandomString();
+  users[id] = {
+    id: id,
+    email: email,
+    password: password,
+  };
 
-  // Perform registration logic...
+  // Log the user object that was created
+  console.log({ id: users[id].id, email: users[id].email, password: users[id].password });
 
-  // Redirect or send a response as needed
-  res.send('Registration successful!');
+  res.cookie('user_id', id); // Setting the cookie here //Here we are setting the cookie
+  res.redirect('/urls');
 });
 
 

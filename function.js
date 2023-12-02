@@ -8,9 +8,7 @@ function generateRandomString() {
   return result;
 }
 
-module.exports = {
-  generateRandomString
-}
+
 
 const findUserWithEmail = (email) => {
   for (const userId in userId) {
@@ -22,4 +20,4 @@ const findUserWithEmail = (email) => {
   return null;
 }
 
-module.exports = { findUserWithEmail };
+module.exports = { generateRandomString, findUserWithEmail };
