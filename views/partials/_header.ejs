@@ -19,15 +19,15 @@
       </div>
     </div>
     <td>
-      <% if (typeof username !== "undefined" && username) { %>
-        <span class="navbar-text">Logged in as: <%= username %></span>
-        <form method="POST" action="/logout">
-          <button type="submit" class="btn btn-outline-light" name="logout">Logout</button>
-        </form>
+      <% if (!user) { %>
+        <!-- Show Register and Login links for users that are not logged in -->
+        <a class="nav-item nav-link" style='color:rgb(183, 211, 197);' href="/register"><h5>Register</h5></a>
+        <a class="nav-item nav-link" style='color:rgb(183, 211, 197);' href="/login"><h5>Login</h5></a>
       <% } else { %>
-        <form method="POST" action="/login">
-          <input id="username" type="text" name="username" placeholder="Username"/>
-          <button type="submit" class="btn btn-outline-light" name="login">Login</button>
+        <!-- Show Logout button for users that are logged in -->
+        <a class="nav-item nav-link" style='color:rgb(183, 211, 197);'>Logged in as: <%= user['email'] %></a>
+        <form action="/logout" method="POST">
+          <button type="submit" class="btn btn-outline-secondary">Logout</button>
         </form>
       <% } %>
     </td>

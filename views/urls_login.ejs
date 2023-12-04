@@ -14,20 +14,20 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>Register - TinyApp</title>
+    <title>Login - TinyApp</title>
   </head>
   <body>
     <header><%- include('partials/_header') %></header>
     <main style="margin: 1em;">
-    <h2>Create Account</h2>
-    <form action="/register" method="post">
+    <h2>Login</h2>
+    <form action="/login" method="POST">
         <label for="email">Email:</label>
-        <input type="email" id="email" placeholder="Enter email" name="email" required/>
+        <input type="email" placeholder="Enter email" id="email" name="email" required/>
 
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" placeholder="Password" required />
+        <input type="password" placeholder="Password" id="password" name="password" required />
 
-        <input type="submit" value="Register" />
+        <input type="submit" value="Login" />
     </form>
     </main>
     <!-- Bootstrap JS -->

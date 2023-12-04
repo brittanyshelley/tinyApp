@@ -9,15 +9,39 @@ function generateRandomString() {
 }
 
 
+const users = require('./express_server.js');
 
-const findUserWithEmail = (email) => {
-  for (const userId in userId) {
-    if (users[user].email === email) {
-      //We found our user
-      return users[user];
+const getUserByEmail = (email, users) => {
+  // loop through the users object
+  for (let key of Object.keys(users)) {
+    if (users[key]["email"] === email) {
+      // we found our user!
+      return users[key];
     }
   }
-  return null;
+  return false;
+};
+
+const checkIfAlreadyRegistered = (email, users) => {
+  // loop through the users object
+  for (let key of Object.keys(users)) {
+    if (users[key]["email"] === email) {
+      // we found our user!
+      return true;
+    }
+  }
+  return false;
 }
 
-module.exports = { generateRandomString, findUserWithEmail };
+const getUserById = (id, users) => {
+  // loop through the users object
+  for (let key of Object.keys(users)) {
+    if (users[key]["id"] === id) {
+      // we found our user!
+      return users[key];
+    }
+  }
+  return false;
+};
+
+module.exports = { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, getUserById };
