@@ -44,4 +44,14 @@ const getUserById = (id, users) => {
   return false;
 };
 
-module.exports = { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, getUserById };
+const urlsForUser = (id, urlDatabase) => {
+  const userURLs = {};
+  for (let key of Object.keys(urlDatabase)) {
+    if (urlDatabase[key]["userID"] === id) {
+      userURLs[key] = urlDatabase[key];
+    }
+  }
+  return userURLs;
+};
+
+module.exports = { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, getUserById, urlsForUser };

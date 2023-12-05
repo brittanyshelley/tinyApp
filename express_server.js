@@ -7,7 +7,7 @@ const cookieSession = require("cookie-session");
 const bcrypt = require('bcryptjs');
 
 
-const { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, getUserById } = require("./function");
+const { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, getUserById, urlsForUser } = require("./function");
 
 app.set("view engine", "ejs");
 
@@ -31,7 +31,7 @@ const users = {
 
 //Middleware
 app.use((req, res, next) => {
-  console.log(`ROUTE: ${req.method} ${req.url}`);
+  // console.log(`ROUTE: ${req.method} ${req.url}`);
   next();
 });
 
@@ -45,9 +45,12 @@ app.use(cookieSession({
 
 // GET login
 app.get("/login", (req, res) => {
-  const templateVars = { user: users[req.session.userId] };
+  const loggedInUser = req.session.user_id;//Get the user_id from the session
+    if (loggedInUser) {
+      return res.redirect('/urls');
+    }
+    const templateVars = { user: null };
   res.render("urls_login", templateVars);
-  console.log('TESTING')
 });
 
 //POST /login
@@ -71,26 +74,8 @@ app.post("/login", (req, res) => {
     return res.status(403).send('passwords do not match');
   }
   req.session.user_id = foundUser.id;
-  console.log('req.session.userId:', req.session.user_id);
-  console.log('foundUser.id:', foundUser.id);
   res.redirect('/urls');
 });
-
-// // GET /protected
-// app.get("/protected", (req, res) => {
-//   const userId = req.session.userId;
-//    // do they NOT have a cookie?
-//    if (!userId) {
-//     return res.status(401).send('you must be signed in to see this page');
-//   }
-//   // Retrieve the user object from the database, Render protected page
-//   const user = users[userId];
-//   if (!user) {
-//     return res.status(404).send('User not found');
-//   }
-//   const templateVars = { email: user.email};
-//   res.render("protected", templateVars);
-// });
 
 //Logout, clear username cookie and redirect to /urls
 app.post('/logout', (req, res) => {
@@ -99,13 +84,11 @@ app.post('/logout', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  const user_id = req.session.user_id;//Get the user_id from the session
-  console.log('session user_id:', req.session.user_id);
-  console.log('Users database:', users);
-  const user = users[user_id];//Used to retrieve users object-user["userRandomID"]
-  console.log('Found user:', user);
-
-  const templateVars = { user };//*
+  const loggedInUser = req.session.user_id;//Get the user_id from the session
+    if (loggedInUser) {
+      return res.redirect('/urls');
+    }
+  const templateVars = { user: null };
   res.render('urls_register', templateVars);
 });
 
@@ -118,101 +101,61 @@ app.post('/register', (req, res) => {
   }
   // check if the provided email address is unique
   const foundUser = checkIfAlreadyRegistered(email, users);
-  console.log('foundUser:', foundUser);
   // did we find a user
   if (foundUser) {
     return res.status(400).send('a user with that email already exists');
   }
   const id = generateRandomString();
-  console.log('id:', id);
-
   // generate the hash
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
-  console.log('hash:', hash);
-
   const user = {
     id: id,
     email: email,
     password: hash,
   };
-console.log('user:', user);
-
-  // update the users object
-  users[id] = user;
-  console.log('users[id]:', users[id]);
-  console.log('user:', user);
-
-  // Log the user object that was created
-  console.log({ id: users[id].id, email: users[id].email, password: users[id].password });
-
-  req.session.user_id = users[id]; // Setting the cookie here //Here we are setting the cookie
-  console.log('Session:', users[id]);
+  users[id] = user; // Update the users object with the new user
+  req.session.user_id = id; // Setting the cookie here
+  console.log('users:', users);
   res.redirect('/urls');
 });
 
-
-// app.post("/login", (req, res) => {
-//   const email = req.body.email;
-//   const password = req.body.password;
-//   const user = findUserWithEmail(email);
-//   if (user && bcrypt.compareSync(password, user.password)) {
-//     req.session.user_id = user.id;
-//     res.redirect("/urls");
-//   } else {
-//     res.status(403).send("Invalid email or password");
-//   }
-// });
-// res.cookie('username', req.body.username);
-
-// Routes
-
 app.get("/urls", (req, res) => {
+  const loggedInUser = req.session.user_id;
   const templateVars = { urls: urlDatabase,
-    user: users[req.session.user_id] };//Passing user object to templateVars
-  res.render("urls_index", templateVars);
+    user: users[loggedInUser] };//Passing user object to templateVars
+  return res.render("urls_index", templateVars);
 });
 
 
 app.get("/urls/new", (req, res) => {
+  const loggedInUser = req.session.user_id;
+  // console.log('loggedInUsure:', loggedInUser);
+  if (!loggedInUser) {
+    return res.redirect('/login');
+  }
   const templateVars = { urls: urlDatabase,
-    user: users[req.session.user_id] };//Passing user object to templateVars
+    user: users[loggedInUser] };//Passing user object to templateVars
   res.render("urls_new", templateVars);
 });
 
-// app.get("/urls/:id", (req, res) => {
-//   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
-//   res.render("urls_show", templateVars);
-// });
 
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[id]; // Retrieve the long URL from urlDatabase
   const templateVars = { id: id, longURL: longURL, user: users[req.session.user_id] };//equal to line 107
-  console.log(templateVars);
+  // console.log(templateVars);
   res.render("urls_show", templateVars);
 });
 
-// //Edit's url from database when button pushed
-// app.get('/urls/:id', (req, res) => {
-//   const id = req.params.id;
-//   const templateVars = {
-//     placeToEdit: {
-//       id: id,
-//       longURL: urlDatabase[id].newLongURL
-//     }
-//   };
-//   res.render('edit', templateVars);
-// });
-
 //Update's url from database when button pushed
 app.post('/urls/:id', (req, res) => {
+  // console.log(req.session.user_id, '***');
   const id = req.params.id;
   const newLongURL = req.body.newLongURL;
   urlDatabase[id] = newLongURL
   res.redirect('/urls');
 });
-
 
 //Delete's url from database when button pushed
 app.post("/urls/:id/delete", (req, res) => {
@@ -223,30 +166,25 @@ app.post("/urls/:id/delete", (req, res) => {
 
 // Redirects to the longURL page
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  if (longURL) {
+  if (urlDatabase[req.params.id]) {
+    const longURL = urlDatabase[req.params.id];
     res.redirect(longURL);
   } else {
-    res.status(404).send("URL not found");
+    res.status(404).send("<h2>URL not found</h2>");
   }
 });
 
 app.post("/urls", (req, res) => {
+  const loggedInUser = req.session.user_id;
+  if (!loggedInUser) {
+    return res.status(401).send('you must be signed in to use this page');
+  }
   const newLongURL = req.body.longURL;
   const id = generateRandomString();
   urlDatabase[id] = newLongURL;
-  // Redirect or respond with the new URL or any other appropriate action
-
-
-  //const newlongURL = req.body;
-  //newlongURL.id = Math.random().toString(36).substring(2,8);
-  //urlDatabase.fetch(newlongURL);
-  //const id = generateRandomString();
-  //const newlongURL = req.body;
-  //urlDatabase[id] = { newlongURL: req.body.longURL };
-res.redirect(`/urls/${id}`);
-  console.log('TESTING')
-  console.log(req.body.longURL); // Log the POST request body to the console
+  res.redirect(`/urls/${id}`);
+  // console.log('TESTING')
+  // console.log(req.body.longURL); // Log the POST request body to the console
 
 });
 
@@ -261,7 +199,7 @@ app.get("/urls.json", (req, res) => {
 
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  // console.log(`Example app listening on port ${PORT}!`);
 });
 
 // const express = require("express");
@@ -299,7 +237,7 @@ app.listen(PORT, () => {
 // });
 
 // app.listen(PORT, () => {
-//   console.log(`Example app listening on port ${PORT}!`);
+//   // console.log(`Example app listening on port ${PORT}!`);
 // });
 
 
