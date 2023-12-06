@@ -12,9 +12,16 @@ const { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, getUserB
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
+
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -42,6 +49,107 @@ app.use(cookieSession({
    name: 'session',
    keys: ['cookieKey'],
 }));
+
+// Home
+app.get("/", (req, res) => {
+  const loggedInUser = req.session.user_id;//Get the user_id from the session
+    if (loggedInUser) {
+      return res.redirect('/urls');
+    }
+  if (!loggedInUser) {
+    return res.redirect('/login');
+  }
+});
+
+// ***************************
+app.get("/urls", (req, res) => {
+  const loggedInUser = req.session.user_id;
+  if (loggedInUser) {
+    const userURLs = urlsForUser(loggedInUser, urlDatabase);
+    const templateVars = {
+      urls: userURLs,
+      user: users[loggedInUser]
+    };
+    console.log('templateVars:', templateVars);
+    return res.render("urls_index", templateVars);
+  } else {
+    return res.send('<h2>you must be signed in to use this page</h2>');
+  }
+});
+
+
+app.get("/urls/new", (req, res) => {
+  const loggedInUser = req.session.user_id;
+  // console.log('loggedInUsure:', loggedInUser);
+  if (!loggedInUser) {
+    return res.redirect('/login');
+  }
+  //Passing user object to templateVars
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[loggedInUser]
+  };
+  res.render("urls_new", templateVars);
+});
+
+
+app.get("/urls/:id", (req, res) => {
+  const loggedInUser = req.session.user_id;
+  if (!loggedInUser) {
+    return res.send('<h2>you must be signed in to use this page</h2>');
+  }
+  if (loggedInUser !== urlDatabase[req.params.id].userID) {
+    return res.send('<h2>you do not have permission to edit this URL</h2>');
+  }
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[loggedInUser]
+  };
+ console.log("templateVars:", templateVars);
+  res.render("urls_show", templateVars);
+});
+
+// Redirects to the longURL page
+app.get("/u/:id", (req, res) => {
+  if (urlDatabase[req.params.id]) {
+    const longURL = urlDatabase[req.params.id];
+    res.redirect(longURL);
+  } else {
+    res.status(404).send("<h2>URL not found</h2>");
+  }
+});
+
+app.post("/urls", (req, res) => {
+  const loggedInUser = req.session.user_id;
+  if (!loggedInUser) {
+    return res.status(401).send('you must be signed in to use this page');
+  }
+  const longURL = req.body.longURL;
+  const id = generateRandomString();
+  // urlDatabase[id] = newLongURL;
+  urlDatabase[id] = {
+    longURL,
+    userID: loggedInUser,
+  };
+  console.log("urlDatabase:_____________", urlDatabase);
+  res.redirect(`/urls/${id}`);
+
+});
+//Update's url from database when button pushed
+app.post('/urls/:id', (req, res) => {
+  // console.log(req.session.user_id, '***');
+  const id = req.params.id;
+  const newLongURL = req.body.newLongURL;
+  urlDatabase[id] = newLongURL
+  res.redirect('/urls');
+});
+
+//Delete's url from database when button pushed
+app.post("/urls/:id/delete", (req, res) => {
+  const id = req.params.id;
+  delete urlDatabase[id];
+  res.redirect("/urls");
+});
 
 // GET login
 app.get("/login", (req, res) => {
@@ -77,12 +185,6 @@ app.post("/login", (req, res) => {
   res.redirect('/urls');
 });
 
-//Logout, clear username cookie and redirect to /urls
-app.post('/logout', (req, res) => {
-  req.session.user_id = null; // clear all cookies
-  res.redirect('/login');
-});
-
 app.get('/register', (req, res) => {
   const loggedInUser = req.session.user_id;//Get the user_id from the session
     if (loggedInUser) {
@@ -110,8 +212,8 @@ app.post('/register', (req, res) => {
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
   const user = {
-    id: id,
-    email: email,
+    id,
+    email,
     password: hash,
   };
   users[id] = user; // Update the users object with the new user
@@ -120,124 +222,13 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 });
 
-app.get("/urls", (req, res) => {
-  const loggedInUser = req.session.user_id;
-  const templateVars = { urls: urlDatabase,
-    user: users[loggedInUser] };//Passing user object to templateVars
-  return res.render("urls_index", templateVars);
+//Logout, clear username cookie and redirect to /urls
+app.post('/logout', (req, res) => {
+  req.session.user_id = null; // clear all cookies
+  res.redirect('/login');
 });
-
-
-app.get("/urls/new", (req, res) => {
-  const loggedInUser = req.session.user_id;
-  // console.log('loggedInUsure:', loggedInUser);
-  if (!loggedInUser) {
-    return res.redirect('/login');
-  }
-  const templateVars = { urls: urlDatabase,
-    user: users[loggedInUser] };//Passing user object to templateVars
-  res.render("urls_new", templateVars);
-});
-
-
-app.get("/urls/:id", (req, res) => {
-  const id = req.params.id;
-  const longURL = urlDatabase[id]; // Retrieve the long URL from urlDatabase
-  const templateVars = { id: id, longURL: longURL, user: users[req.session.user_id] };//equal to line 107
-  // console.log(templateVars);
-  res.render("urls_show", templateVars);
-});
-
-//Update's url from database when button pushed
-app.post('/urls/:id', (req, res) => {
-  // console.log(req.session.user_id, '***');
-  const id = req.params.id;
-  const newLongURL = req.body.newLongURL;
-  urlDatabase[id] = newLongURL
-  res.redirect('/urls');
-});
-
-//Delete's url from database when button pushed
-app.post("/urls/:id/delete", (req, res) => {
-  const id = req.params.id;
-  delete urlDatabase[id];
-  res.redirect("/urls");
-});
-
-// Redirects to the longURL page
-app.get("/u/:id", (req, res) => {
-  if (urlDatabase[req.params.id]) {
-    const longURL = urlDatabase[req.params.id];
-    res.redirect(longURL);
-  } else {
-    res.status(404).send("<h2>URL not found</h2>");
-  }
-});
-
-app.post("/urls", (req, res) => {
-  const loggedInUser = req.session.user_id;
-  if (!loggedInUser) {
-    return res.status(401).send('you must be signed in to use this page');
-  }
-  const newLongURL = req.body.longURL;
-  const id = generateRandomString();
-  urlDatabase[id] = newLongURL;
-  res.redirect(`/urls/${id}`);
-  // console.log('TESTING')
-  // console.log(req.body.longURL); // Log the POST request body to the console
-
-});
-
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-//added page to display urls
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-
 
 app.listen(PORT, () => {
-  // console.log(`Example app listening on port ${PORT}!`);
+   console.log(`Example app listening on port ${PORT}!`);
 });
-
-// const express = require("express");
-// const app = express();
-// const PORT = 8080; // default port 8080
-
-// app.set("view engine", "ejs");
-
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
-
-// //Displays urls database object at localhost:8080/urls.json
-// app.get("/urls.json", (req, res) => {
-//   res.json(urlDatabase);
-// });
-
-// app.get("/urls", (req, res) => {
-//   const templateVars = { urls: urlDatabase };
-//   res.render("urls_index", templateVars);
-// });
-
-// app.get("/urls/:id", (req, res) => {
-//   const templateVars = { id: req.params.id, longURL: req.params.longUrl };
-//   res.render("urls_show", templateVars);
-// });
-
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>World</b></body></html>\n");
-// });
-
-// app.get("/", (req, res) => {
-//   res.send("Hello!");
-// });
-
-// app.listen(PORT, () => {
-//   // console.log(`Example app listening on port ${PORT}!`);
-// });
-
 

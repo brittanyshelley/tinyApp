@@ -54,4 +54,10 @@ const urlsForUser = (id, urlDatabase) => {
   return userURLs;
 };
 
+const urlsForUserId = (id, urlDatabase) => {
+  for (let id in urlDatabase) {
+    console.log(`Short URL: ${id}, Long URL: ${urlDatabase[id].longURL}`);
+  }
+}
+
 module.exports = { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, getUserById, urlsForUser };
