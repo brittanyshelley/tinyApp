@@ -75,12 +75,14 @@ app.get("/urls", (req, res) => {
     return res.send('<h2>You must be signed in to use this page</h2>');
   }
 
-  const userUrls = urlsForUser(userId, urlDatabase);
-  const templateVars = {
-    urls: userUrls,
-    user: loggedInUser
-  };
-  return res.render("urls_index", templateVars);
+  if (loggedInUser) {
+    const userUrls = urlsForUser(userId, urlDatabase);
+    const templateVars = {
+      urls: userUrls,
+      user: loggedInUser
+    };
+    return res.render("urls_index", templateVars);
+  }
 });
 
 // GET /urls/new route
@@ -105,34 +107,38 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
   const loggedInUser = users[userID];
+  // Check if the user is logged in
   if (!loggedInUser) {
     return res.send('<h2>You must be signed in to use this page</h2></br></br><a href="/login">Login to continue</a>');
   }
 
-
-  // Check if the url belongs to the user
+  // Check if the URL belongs to the logged-in user
   const shortUrl = req.params.id;
-  if (loggedInUser) {
-    const userURLs = urlsForUser(userID, urlDatabase);\
-    if (userURLs[shortUrl].userID === userID) {
-      const templateVars = {
-        id: shortUrl,
-        longURL: userURLs[shortUrl].longURL,
-        user: loggedInUser
-      };
+  const userURLs = urlsForUser(userID, urlDatabase);
 
-      return res.render("urls_show", templateVars);
-    }
-    else {
-      res.send('<h2>You do not have permission to edit this URL</h2>');
-    }
+  // Log user URLs for debugging
+  console.log('User URLs:', userURLs);
+
+  // Check if the shortUrl exists in the user's URLs
+  if (userURLs[shortUrl] && userURLs[shortUrl].userID === userID) {
+    // If the URL belongs to the user, render the page
+    const templateVars = {
+      id: shortUrl,
+      longURL: userURLs[shortUrl].longURL,
+      user: loggedInUser
+    };
+    return res.render("urls_show", templateVars);
+  } else {
+    // If the URL does not belong to the user, display an error message
+    res.send('<h2>You do not have permission to edit this URL</h2>');
   }
 });
 
-// GET /u/:id route
+// GET /u/:id route (DONE)
 app.get("/u/:id", (req, res) => {
-  if (urlDatabase[req.params.id]) {
-    const longURL = urlDatabase[req.params.id];
+  const shortURL = req.params.id;
+  if (urlDatabase[shortURL]) {
+    const longURL = urlDatabase[shortURL]["longURL"];
     res.redirect(longURL);
   } else {
     res.status(404).send("<h2>URL not found</h2>");
@@ -183,7 +189,6 @@ app.post("/urls/:id/delete", (req, res) => {
   if (!loggedInUser) {
     return res.send('<h2>You must be signed in to use this page</h2>');
   }
-
   const id = req.params.id;
   delete urlDatabase[id];
   res.redirect("/urls");
@@ -219,11 +224,9 @@ app.post("/login", (req, res) => {
 
   // do the passwords NOT match
   const result = bcrypt.compareSync(password, foundUser.password);
-  //if (foundUser.password !== password) {
   if (!result) {
     return res.status(403).send('passwords do not match');
   }
-
   req.session.user_id = foundUser.id;
   res.redirect('/urls');
 });
@@ -241,7 +244,6 @@ app.get('/register', (req, res) => {
   res.render('urls_register', templateVars);
 });
 
-// Complete the POST /register route
 // Handle the registration logic here
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
@@ -269,7 +271,6 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 });
 
-// Complete the POST /logout route
 //Logout, clear username cookie and redirect to /urls
 app.post('/logout', (req, res) => {
   req.session.user_id = null; // clear all cookies
