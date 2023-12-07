@@ -43,7 +43,7 @@ const users = {
 
 //Middleware
 app.use((req, res, next) => {
-  // console.log(`ROUTE: ${req.method} ${req.url}`);
+  console.log(`ROUTE: ${req.method} ${req.url}`);
   next();
 });
 
@@ -113,8 +113,7 @@ app.get("/urls/:id", (req, res) => {
   // Check if the url belongs to the user
   const shortUrl = req.params.id;
   if (loggedInUser) {
-    const userURLs = urlsForUser(userID, urlDatabase);
-    console.log("userURLs:_____________", userURLs)
+    const userURLs = urlsForUser(userID, urlDatabase);\
     if (userURLs[shortUrl].userID === userID) {
       const templateVars = {
         id: shortUrl,
@@ -153,7 +152,6 @@ app.post("/urls", (req, res) => {
     longURL,
     userID
   };
-  console.log("urlDatabase:_____________", urlDatabase);
   res.redirect(`/urls/${id}`);
 });
 
