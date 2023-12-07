@@ -103,7 +103,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-// GET /urls/:id route
+// GET /urls/:id route (DONE)
 app.get("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
   const loggedInUser = users[userID];
@@ -128,10 +128,15 @@ app.get("/urls/:id", (req, res) => {
       user: loggedInUser
     };
     return res.render("urls_show", templateVars);
-  } else {
-    // If the URL does not belong to the user, display an error message
-    res.send('<h2>You do not have permission to edit this URL</h2>');
   }
+  // Check if the URL does not exist for the user
+  if (!userURLs[shortUrl]) {
+    res.status(404).send('<h2>URL not found</h2>');
+    return;
+  }
+
+  // If the URL exists but does not belong to the user, display an error message
+  res.send('<h2>You do not have permission to edit this URL</h2>');
 });
 
 // GET /u/:id route (DONE)
@@ -140,12 +145,11 @@ app.get("/u/:id", (req, res) => {
   if (urlDatabase[shortURL]) {
     const longURL = urlDatabase[shortURL]["longURL"];
     res.redirect(longURL);
-  } else {
-    res.status(404).send("<h2>URL not found</h2>");
   }
+  res.status(404).send("<h2>URL not found</h2>");
 });
 
-// Complete the POST /urls route
+// Complete the POST /urls route (DONE)
 app.post("/urls", (req, res) => {
   const userID = req.session.user_id;
   const loggedInUser = users[userID];
