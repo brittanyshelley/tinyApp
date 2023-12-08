@@ -7,7 +7,7 @@ const cookieSession = require("cookie-session");
 const bcrypt = require('bcryptjs');
 
 
-const { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, getUserById, urlsForUser } = require("./function");
+const { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, urlsForUser } = require("./function");
 
 app.set("view engine", "ejs");
 
@@ -36,7 +36,7 @@ const users = {
   "aJ48lW": {
     id: "aJ48lW",
     email: "test@test.com",
-    password: "test",
+    password: "$2a$10$4Va.wonTRBXjdkxc7XdD6eZbZVV.Migsdg8PEhuiU1xQZ5Ia7DdWO",
   }
 };
 
@@ -116,9 +116,6 @@ app.get("/urls/:id", (req, res) => {
   const shortUrl = req.params.id;
   const userURLs = urlsForUser(userID, urlDatabase);
 
-  // Log user URLs for debugging
-  console.log('User URLs:', userURLs);
-
   // Check if the shortUrl exists in the user's URLs
   if (userURLs[shortUrl] && userURLs[shortUrl].userID === userID) {
     // If the URL belongs to the user, render the page
@@ -169,31 +166,41 @@ app.post("/urls", (req, res) => {
 app.post('/urls/:id', (req, res) => {
   const userID = req.session.user_id;
   const loggedInUser = users[userID];
+  // Check if the user is logged in
   if (!loggedInUser) {
-    return res.send('<h2>You must be signed in to use this page</h2>');
+    return res.send('<h2>You must be signed in to use this page</h2></br></br><a href="/login">Login to continue</a>');
   }
-
-  const id = req.params.id;
+  // Check if the URL belongs to the logged-in user
+  const shortUrl = req.params.id;
   const longURL = req.body.newLongURL;
-  const shortUrl = urlDatabase[id];
+  const userURLs = urlsForUser(userID, urlDatabase);
 
-  // is this url owned by the logged in user?
-  if (shortUrl.userID !== userID) {
-    return res.send('<h2>You do not have permission to edit this URL</h2>');
+  // Check if the shortUrl exists in the user's URLs
+  if (userURLs[shortUrl] && userURLs[shortUrl].userID === userID) {
+    // If the URL belongs to the user, render the page
+
+    // Update the longURL for the specified URL
+    urlDatabase[shortUrl].longURL = longURL;
+    return res.redirect('/urls');
   }
-
-  shortUrl.longURL = longURL;
-  res.redirect('/urls');
+  return res.send('<h3>URL not found</h3></br></br><a href="/urls/new">Create new url</a>');
 });
 
-//Delete's url from database when button pushed
+// Delete's url from database when button pushed
 app.post("/urls/:id/delete", (req, res) => {
   const userID = req.session.user_id;
   const loggedInUser = users[userID];
   if (!loggedInUser) {
     return res.send('<h2>You must be signed in to use this page</h2>');
   }
+
   const id = req.params.id;
+  const shortUrl = urlDatabase[id];
+  // is this url owned by the logged in user?
+  if (shortUrl.userID !== userID) {
+    return res.send('<h2>You do not have permission to edit this URL</h2>');
+  }
+
   delete urlDatabase[id];
   res.redirect("/urls");
 });
@@ -237,8 +244,9 @@ app.post("/login", (req, res) => {
 
 // Complete the GET /register route
 app.get('/register', (req, res) => {
+  //Get the user_id from the session
   const userID = req.session.user_id;
-  const loggedInUser = users[userID];//Get the user_id from the session
+  const loggedInUser = users[userID];
 
   if (loggedInUser) {
     return res.redirect('/urls');
@@ -265,6 +273,7 @@ app.post('/register', (req, res) => {
   // generate the hash
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
+  console.log('hash:', hash);
   const user = {
     id,
     email,
@@ -284,4 +293,3 @@ app.post('/logout', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
