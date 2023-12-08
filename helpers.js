@@ -1,3 +1,5 @@
+
+
 function generateRandomString() {
   const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let result = "";
@@ -33,17 +35,6 @@ const checkIfAlreadyRegistered = (email, users) => {
   return false;
 }
 
-const getUserById = (id, users) => {
-  // loop through the users object
-  for (let key of Object.keys(users)) {
-    if (users[key]["id"] === id) {
-      // we found our user!
-      return users[key];
-    }
-  }
-  return false;
-};
-
 const urlsForUser = (id, urlDatabase) => {
   const userURLs = {};
   for (let key of Object.keys(urlDatabase)) {
@@ -54,4 +45,4 @@ const urlsForUser = (id, urlDatabase) => {
   return userURLs;
 };
 
-module.exports = { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, getUserById, urlsForUser };
+module.exports = { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, urlsForUser };

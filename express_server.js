@@ -7,7 +7,7 @@ const cookieSession = require("cookie-session");
 const bcrypt = require('bcryptjs');
 
 
-const { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, urlsForUser } = require("./function");
+const { generateRandomString, getUserByEmail, checkIfAlreadyRegistered, urlsForUser } = require("./helpers");
 
 app.set("view engine", "ejs");
 
