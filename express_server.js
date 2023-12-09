@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const morgan = require("morgan");
-const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
 const bcrypt = require('bcryptjs');
 
@@ -273,7 +272,6 @@ app.post('/register', (req, res) => {
   // generate the hash
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
-  console.log('hash:', hash);
   const user = {
     id,
     email,
