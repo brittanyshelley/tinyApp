@@ -273,7 +273,6 @@ app.post('/register', (req, res) => {
   // generate the hash
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
-  console.log('hash:', hash);
   const user = {
     id,
     email,
