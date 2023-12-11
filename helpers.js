@@ -11,7 +11,7 @@ function generateRandomString() {
 }
 
 
-const users = require('./express_server.js');
+const users = require('./data.js');
 
 const getUserByEmail = (email, users) => {
   // loop through the users object
