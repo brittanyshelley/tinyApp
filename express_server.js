@@ -48,7 +48,6 @@ app.use((req, res, next) => {
 
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
-app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['cookieKey'],
@@ -142,7 +141,7 @@ app.get("/u/:id", (req, res) => {
     const longURL = urlDatabase[shortURL]["longURL"];
     res.redirect(longURL);
   }
-  res.status(404).send("<h2>URL not found</h2>");
+  return res.status(404).send("<h2>URL not found</h2>");
 });
 
 // Complete the POST /urls route (DONE)
