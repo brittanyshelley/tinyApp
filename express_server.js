@@ -54,7 +54,7 @@ app.post('/register', (req, res) => {
   const { email, password } = req.body;
   // did they NOT give us an email or password
   if (!email || !password) {
-    return res.status(400).send('please provide an email AND password');
+    return res.status(400).send('Please provide an email AND password');
   }
   // check if the provided email address is unique
   const foundUser = checkIfAlreadyRegistered(email, users);
